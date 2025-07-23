@@ -1,13 +1,13 @@
--- Hospital Tycoon GUI Script (Updated: July 2025)
+-- Hospital Tycoon GUI (Auto Collect + Auto Upgrade Only)
 local plr = game.Players.LocalPlayer
 local char = plr.Character or plr.CharacterAdded:Wait()
 
 -- GUI Setup
 local gui = Instance.new("ScreenGui", game.CoreGui)
-gui.Name = "UltimateTycoonGui"
+gui.Name = "TycoonHelperGUI"
 
 local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 260, 0, 420)
+frame.Size = UDim2.new(0, 260, 0, 200)
 frame.Position = UDim2.new(0, 30, 0, 30)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.Active = true
@@ -16,13 +16,13 @@ frame.BorderSizePixel = 0
 
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, 0, 0, 30)
-title.Text = "🏥 Tycoon Master GUI"
+title.Text = "🏥 Tycoon Helper"
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.SourceSansBold
 title.TextSize = 20
 title.BackgroundTransparency = 1
 
--- Reusable button function
+-- Reusable Button Creator
 local function makeBtn(text, order)
     local btn = Instance.new("TextButton", frame)
     btn.Size = UDim2.new(1, -20, 0, 35)
@@ -36,24 +36,13 @@ local function makeBtn(text, order)
     return btn
 end
 
--- Auto Claim
-local btnClaim = makeBtn("🎯 Auto Claim Tycoon", 0)
-btnClaim.MouseButton1Click:Connect(function()
-    for _, v in pairs(workspace:GetDescendants()) do
-        if v.Name:lower():find("claim") and v:IsA("BasePart") then
-            firetouchinterest(char.HumanoidRootPart, v, 0)
-            wait(0.1)
-            firetouchinterest(char.HumanoidRootPart, v, 1)
-        end
-    end
-end)
-
--- Auto Collect
+-- 💰 Auto Collect
 local collecting = false
-local btnCollect = makeBtn("💰 Auto Collect", 1)
+local btnCollect = makeBtn("💰 Auto Collect", 0)
 btnCollect.MouseButton1Click:Connect(function()
     collecting = not collecting
     btnCollect.Text = collecting and "✅ Collecting..." or "💰 Auto Collect"
+
     coroutine.wrap(function()
         while collecting do
             for _, v in pairs(workspace:GetDescendants()) do
@@ -68,19 +57,26 @@ btnCollect.MouseButton1Click:Connect(function()
     end)()
 end)
 
--- Auto Upgrade (tinatapakan)
+-- 🛠️ Auto Upgrade (Updated version)
 local upgrading = false
-local btnUpgrade = makeBtn("🛠️ Auto Upgrade", 2)
+local btnUpgrade = makeBtn("🛠️ Auto Upgrade", 1)
 btnUpgrade.MouseButton1Click:Connect(function()
     upgrading = not upgrading
     btnUpgrade.Text = upgrading and "✅ Upgrading..." or "🛠️ Auto Upgrade"
+
     coroutine.wrap(function()
         while upgrading do
-            for _, v in pairs(workspace:GetDescendants()) do
-                if v:IsA("BasePart") and v.Name:lower():find("buy") then
-                    firetouchinterest(char.HumanoidRootPart, v, 0)
-                    wait(0.1)
-                    firetouchinterest(char.HumanoidRootPart, v, 1)
+            for _, part in pairs(workspace:GetDescendants()) do
+                if part:IsA("BasePart") and part.Name:lower():sub(1, 3) == "buy" then
+                    firetouchinterest(char.HumanoidRootPart, part, 0)
+                    task.wait(0.1)
+                    firetouchinterest(char.HumanoidRootPart, part, 1)
+
+                    local click = part:FindFirstChildOfClass("ClickDetector")
+                    if click then fireclickdetector(click) end
+
+                    local prompt = part:FindFirstChildOfClass("ProximityPrompt")
+                    if prompt then fireproximityprompt(prompt) end
                 end
             end
             wait(1)
@@ -88,61 +84,8 @@ btnUpgrade.MouseButton1Click:Connect(function()
     end)()
 end)
 
--- Speed Boost
-local btnSpeed = makeBtn("⚡ Speed Boost", 3)
-btnSpeed.MouseButton1Click:Connect(function()
-    local human = char:FindFirstChildOfClass("Humanoid")
-    if human then
-        human.WalkSpeed = 100
-        btnSpeed.Text = "✅ Speed: 100"
-    end
-end)
-
--- Auto Rebirth
-local btnRebirth = makeBtn("♻️ Auto Rebirth", 4)
-btnRebirth.MouseButton1Click:Connect(function()
-    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Rebirth")
-    if remote and remote:IsA("RemoteEvent") then
-        remote:FireServer()
-    end
-end)
-
--- Auto Hire (tinatapakan)
-local hiring = false
-local btnHire = makeBtn("👷 Auto Hire Workers", 5)
-btnHire.MouseButton1Click:Connect(function()
-    hiring = not hiring
-    btnHire.Text = hiring and "✅ Hiring..." or "👷 Auto Hire Workers"
-    coroutine.wrap(function()
-        while hiring do
-            for _, v in pairs(workspace:GetDescendants()) do
-                if v:IsA("BasePart") and v.Name:lower():find("hire") then
-                    firetouchinterest(char.HumanoidRootPart, v, 0)
-                    wait(0.1)
-                    firetouchinterest(char.HumanoidRootPart, v, 1)
-                end
-            end
-            wait(1)
-        end
-    end)()
-end)
-
--- GUI Theme Toggle
-local btnTheme = makeBtn("🎨 Neon Mode", 6)
-local neon = false
-btnTheme.MouseButton1Click:Connect(function()
-    neon = not neon
-    if neon then
-        frame.BackgroundColor3 = Color3.fromRGB(0, 255, 127)
-        btnTheme.Text = "🎨 Dark Mode"
-    else
-        frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-        btnTheme.Text = "🎨 Neon Mode"
-    end
-end)
-
--- Close GUI
-local btnClose = makeBtn("❌ Close GUI", 7)
+-- ❌ Close Button
+local btnClose = makeBtn("❌ Close GUI", 2)
 btnClose.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 btnClose.MouseButton1Click:Connect(function()
     gui:Destroy()
